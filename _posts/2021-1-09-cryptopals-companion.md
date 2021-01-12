@@ -92,16 +92,16 @@ Challenge 6
 Some definitions
 * **AES** (Advanced Encryption Standard) is a **block cipher**, it takes a block of 16 bytes and garbles it based on a 16 byte key
    * However this presents a problem, what do you do if your message is longer than 16 bytes, for example a 32 byte message?
-   * If you’re curious about what AES does under the hood (not needed for these challenges, but fun to learn about) https://www.youtube.com/watch?v=O4xNJsjtN6E
+   * If you’re curious about what AES does under the hood (not needed for these challenges, but fun to learn about) [https://www.youtube.com/watch?v=O4xNJsjtN6E](https://www.youtube.com/watch?v=O4xNJsjtN6E)
 * **ECB** stands for Electronic Code Book, and is a **block cipher mode of operation**. Block cipher modes are ways of making block ciphers (which can only encrypt a single block) usable for larger messages
    * ECB is the most straightforward, cut the message into blocks and encrypt each of them separately.
    * This turns out to be a terrible way of doing things, and you’ll see why in the next few challenges
-   * https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_codebook_(ECB)
+   * [https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_codebook_(ECB)](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_codebook_(ECB))
   
 Challenge 7
 
    * pycryptodome provides an AES implementation in Crypto.Cipher.AES
-      * https://pycryptodome.readthedocs.io/en/latest/src/cipher/aes.html
+      * [https://pycryptodome.readthedocs.io/en/latest/src/cipher/aes.html](https://pycryptodome.readthedocs.io/en/latest/src/cipher/aes.html)
    * You should make both encryption and decryption functions, you’ll need it in a bit
   
 Challenge 8
@@ -126,7 +126,7 @@ Challenge 10: A new block cipher mode, CBC
             * For the first block we xor it with the IV before encrypting
             * For every other block we xor it with the _last ciphertext block_
          * Essentially “chaining” the different blocks together, so the resulting ciphertext of a block depends on the “sum” of all the previous blocks and the IV
-      * https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC) has some very useful diagrams
+      * [https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Cipher_block_chaining_(CBC)) has some very useful diagrams
    * Implementing it is fairly straightforward once you understand whats going on
    * Decryption is just running this in reverse, block cipher decryption first and then xor
    * Note: ECB mode with one block is the same as just running the cipher, so you can reuse that as long as you’re encrypting/decrypting only one block
@@ -179,12 +179,6 @@ Challenge 17
    * This is a great challenge
       * CBC is (unfortunately) still a relatively popular block cipher mode, and is seen as "the good alternative" to ECB
       * This directly builds off of what you learned about CBC decryption in challenge 16, how bit flips in one ciphertext block affect the resulting decryption in the next block
-      * This shows off how useful these side channel leaks are. A **side channel leak** is when a system unintentionally reveals information about it's inner workings
-         * For this challenge, the "decryption server" is leaking the fact that the padding is invalid
-         * For later challenges you'll see that even leaking how long the code takes to run can be enough to cryptography
-         * Some other side channels you won't see in cryptopals: 
-            * The amount of power the CPU is using can be used to retrieve AES keys from smart cards
-            * Using information about the CPU cache to break OpenSSL's carefully implemented RSA algorithm https://web.eecs.umich.edu/~genkin/cachebleed/index.html
       * CBC padding oracles also show up from time to time in CTFs, though more rarely due to how famous this attack is
    * Here is a good explanation of the attack: https://robertheaton.com/2013/07/29/padding-oracle-attack/ 
    * From my experience this challenge is not necessarily conceptually difficult, but can be a bit tricky to get right
@@ -193,3 +187,11 @@ Challenge 17
          * A plaintext that is all padding should be accepted
          * A plaintext with no padding should be rejected
    * Aside: Anyone else feeling that dread after realizing that all it takes to break a perfectly secure algorithm like AES and a reasonably sensible mode like CBC is something as small as having two different error messages for wrong password vs bad padding? Because I definitely was
+   * Aside: This challenge really shows off how useful these side channel leaks are. A **side channel leak** is when a system unintentionally reveals information about it's inner workings
+      * For this challenge, the "decryption server" is leaking the fact that the padding is invalid
+      * For later challenges you'll see that even leaking how long the code takes to run can be enough to cryptography
+         * This is called a **timing attack**
+      * Some other side channels you won't see in cryptopals: 
+         * The amount of power the CPU is using can be used to retrieve AES keys from smart cards
+         * Using information about the CPU cache to break OpenSSL's carefully implemented RSA algorithm [https://web.eecs.umich.edu/~genkin/cachebleed/index.html](https://web.eecs.umich.edu/~genkin/cachebleed/index.html)
+         * An example of a timing attack using a side channel leak from a CTF challenge: [https://ubcctf.github.io/2020/11/dragonctf2020-bitflips/](https://ubcctf.github.io/2020/11/dragonctf2020-bitflips/)
