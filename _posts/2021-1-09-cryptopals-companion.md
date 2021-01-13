@@ -4,35 +4,70 @@ title: "A companion to the Monsanto Cryptopals challenges"
 author: rctcwyvrn
 ---
 
-Preparations before we start
-* This companion in general will not provide any direct solutions, I instead mostly give leading questions. If you need solutions, plenty of solutions and writeups are just a google away, though remember that looking at the answers at the back of the book leads to understanding less. Feel free to DM me on discord or in the `crypto` channel if you're stuck
-* Almost all ctfers use python for solving challenges across basically all categories, so that’s what I would recommend
-   * For python, all you’ll need is
-      * A working python installation
-      * [pycryptodome](https://pypi.org/project/pycryptodome/)
-      * Something to write code with, `vscode` is nice
-   * I’ll be assuming you’ll be writing in python for this guide
-* Make sure you read the homepage, everything it says is true
-   * You don’t need (and aren’t expected to) know any cryptography beforehand
-      * They do unfortunately skip out on defining some terms, but that’s what this companion is for
-   * You only need simple math 
-      * The hard math is left to the professionals and we just copy their equations :)
-      * No math shows up until set 5 anyway 
-   * These challenges are attacks, not puzzles with tricks. The challenge authors make an effort to make the challenges clear and "doable", instead of obfuscated like you'd see in competitions. This companion guide also helps clear up the occasional ambiguity and confusing wording
-   * I like to put an extra little disclaimer whenever I recommend someone take a look at cryptopals, which is that after solving these challenges most people feel a strong feeling of dread. Dread when they realize how fragile cryptography can be and how most people writing code that uses cryptography are **completely unaware** that these fragile points exist
+Hello and welcome to my Cryptopals companion guide!
+
+Introduction
+---
+Who is this guide for?
+* Those new to CTF competitions and cryptography in general
+
+Who are you and why did you write this?
+* Hi I'm rctcwyvrn (call me arctic). I like crypto and I really like recommending cryptopals as a way to get newcomers into crypto. However I always felt like it needed a few more hints and explanations at times, to really make it accessible to those with zero knowledge about cryptography. For example, I went into cryptopals with next to zero experience even using cryptography, I didn't even know what AES or RSA did or what the difference was. I ended up having trouble at times and I wanted to patch up a few of those holes
+* So this guide is written as a sort of guiding mentor through these challenges, with an extra focus on using these attacks in CTF competitions
+
+What does this guide have?
+* Hints and tips for the cryptopals challenges
+* Some definitions that the cryptopals team chose not to include
+* Asides and random tangents about things I find interesting
+* Some notes about applying these attacks in CTF competitions
+
+What does this guide not have?
+* Solutions to the challenges, if you get truly stuck there are plenty of writeups and solutions just a google away
+* Sensible formatting, good grammar, or accurate spelling
+* A good sense of humor
+
+What do I need to get started?
+* Almost all ctfers use python for solving challenges across most of the categories, so that’s what I would recommend. You'll need:
+   * A working python3 installation with [pycryptodome](https://pypi.org/project/pycryptodome/) installed
+   * Something to write code with, `vscode` is nice
+   * Note: I’ll be assuming you’ll be writing in python for this guide
+* Some simple math/cpsc concepts
+   * For sets 1-4 you'll need to know how XOR works and maybe have a basic understanding of what modulo does, that's it
+   * For sets 5-6 you'll need to be more familiar with modular arithmetic and be ready to transcribe some scary looking equations. Other things to know include: what primes are and power rules from grade 7
+   * If you're not confident in your math skills I swear it won't be that bad! Pinky promise!
+   * The hard math is left to the professionals and we just copy their equations :)
+* You don’t need (and aren’t expected to) know any cryptography beforehand
+   * They do unfortunately skip out on defining some terms, but that’s what this companion is for
+* PS: Give the cryptopals homepage and [this article](https://blog.pinboard.in/2013/04/the_matasano_crypto_challenges/) a read if you don't believe me
+
+About cryptopals
+* These challenges are attacks, not puzzles with tricks. The challenge authors make an effort to make the challenges clear and "doable", instead of hiding details or requiring guessing like you'd see in competitions. This companion guide also helps clear up the occasional ambiguity and confusing wording
 * The general structure of the sets is
    * Set 1 is preparation and “the qualifier set” 
    * Sets 2-4 are various attacks on symmetric ciphers and a few hashes in set 4
    * Sets 5-6 are attacks on various asymmetric primitives, all using primes and numbers
-* In case you’re wondering how well cryptopals will prepare you for CTFs, take a look at CSAW CTF 2020. Three challenges are basically directly taken from cryptopals and can be solved by copying over the code
+
+Disclaimer:
+I like to put an extra little disclaimer whenever I recommend someone take a look at cryptopals because after solving these challenges, some people get a strong feeling of dread. Dread when they realize how fragile cryptography can be and how most people writing code that uses cryptography are **completely unaware** that these fragile points exist
+  
+
+_"There is no difference, from the attacker's point of view, between gross and tiny errors. Both of them are equally exploitable. In at least three challenges, the mere fact of getting distinguishable error messages was enough to recover the entire message._
+
+_This lesson is very hard to internalize. In the real world, if you build a bookshelf and forget to tighten one of the screws all the way, it does not burn down your house"_
+
+- Marciej Ceglowski
+
+PS: In case you’re wondering how well cryptopals will prepare you for CTFs, take a look at [CSAW CTF 2020](https://ctftime.org/event/1079/tasks/). Three challenges are basically directly taken from cryptopals and can be solved by copying pasting the solutions, which is what I did during the competition
    * Authy is a length extension sha attack, covered in challenge 29
    * modus operandi is a ciphertext detection challenge, covered in challenge 11
    * adversarial is a fixed nonce CTR, covered in challenges 6 and 20
 
+
 Some quick definitions
 ---
 **Encryption**
-   * Encryption is turning a message (like “cryptography is cool”) and changing into a message that appears to be a garbled mess (like “falkjdior30vjs”) based on some “key”
+   * Encryption is turning a message (like “cryptography is cool”) and changing into a message that appears to be a garbled mess (like “falkjdior30vjs”) based on some “key” in a way where the only way to recover the original message is to use the key
+      * This may seem like too simple of a definition, but I think it's a good mental model for what encryption does. "Scramble a message in a reversible way" is how I remember it
    * The method of encrypting the message and what the key is vastly depends on the algorithm, for example in rsa the key is a number, in caesar ciphers the key is a table, and in aes the key is 16 bytes
    * **Plaintext** is used to refer to the message before encryption and **ciphertext** is used for the garbled message after encryption
 
@@ -97,6 +132,28 @@ Some definitions
    * ECB is the most straightforward, cut the message into blocks and encrypt each of them separately.
    * This turns out to be a terrible way of doing things, and you’ll see why in the next few challenges
    * [https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_codebook_(ECB)](https://en.wikipedia.org/wiki/Block_cipher_mode_of_operation#Electronic_codebook_(ECB))
+  
+  
+A long aside about symmetric ciphers: What makes a good cipher?
+* Properties that you want from a cipher tend to fall into two main categories
+   * Properties that make the cipher more practical
+   * Properties that make the cipher secure
+* What properties make a cipher more practical?
+   * Simplicity of the algorithm, for example AES rounds are "simple" enough to be encoded as a CPU instruction. 
+      * Simplicity also means less chance of implementation errors and ease of analysis. 
+      * Simpler also means easier to implement on restricted systems, like smart cards or IoT devices
+   * Speed. Rijndael, the cipher that won the AES competition to be named AES, won over Serpent, another contender, due to the Rijndael having a much faster and efficient implementation
+* What properties make a cipher more secure?
+   * This section could probably be it's own textbook, but understanding these things may help with attacking the custom ciphers you come across in CTF challenges occasionally, though these attacks are all very advanced and I've only ever implemented two of them (slide and MITM)
+   * A large enough key and block size to not be bruteforcable (see [DES](https://en.wikipedia.org/wiki/Data_Encryption_Standard))
+   * Since many symmetric ciphers are round based: A strong round function to be resistant to slide attacks [1](https://www.robertxiao.ca/hacking/sarah2/), [2](https://rctcwyvrn.github.io/posts/2019-12-02-bsides_crypto.html)
+   * Non linearity of the cipher, a linear change in plaintext should not result in a linear change in ciphertext
+      * Protects against [linear cryptoanalysis](https://en.wikipedia.org/wiki/Linear_cryptanalysis)
+   * Flips in plaintext should result in a uniform chance for flips in all other bits in the ciphertext, ie you should not be able to know that flipping bit 8 in the plaintext will result in a flip in bit 6 in the ciphertext
+      * Protects against [differential cryptoanalysis](https://en.wikipedia.org/wiki/Differential_cryptanalysis)
+   * Unable to mount a divide-and-conquer/meet-in-the-middle style algorithm to bruteforce, ie there shouldn't be a way to split up the encryption into parts, bruteforce them seperately, and meet in the middle. See [Double DES](https://en.wikipedia.org/wiki/Meet-in-the-middle_attack#:~:text=The%20MITM%20attack%20is%20one,DES%20and%20not%20Double%20DES.&text=Triple%20DES%20uses%20a%20%22triple,the%20size%20of%20its%20keyspace.)
+      * Isn't it annoying how meet-in-the-middle and man-in-the-middle have the same acronym, even though they're completely different
+
   
 Challenge 7
 
@@ -180,7 +237,7 @@ Challenge 17
       * CBC is (unfortunately) still a relatively popular block cipher mode, and is seen as "the good alternative" to ECB
       * This directly builds off of what you learned about CBC decryption in challenge 16, how bit flips in one ciphertext block affect the resulting decryption in the next block
       * CBC padding oracles also show up from time to time in CTFs, though more rarely due to how famous this attack is
-   * Here is a good explanation of the attack: https://robertheaton.com/2013/07/29/padding-oracle-attack/ 
+   * Here is a good explanation of the attack: [https://robertheaton.com/2013/07/29/padding-oracle-attack/](https://robertheaton.com/2013/07/29/padding-oracle-attack/ )
    * From my experience this challenge is not necessarily conceptually difficult, but can be a bit tricky to get right
       * Start with just finding one byte, then work towards automating it for the rest of the bytes in the block, and then finally for multiple blocks
       * Made sure the padding functions from set 2 are fully correct
